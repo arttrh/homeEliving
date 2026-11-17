@@ -1,8 +1,11 @@
 package ecommerce.api.home.living.senai.model;
 
-import ecommerce.api.home.living.senai.service.validation.Result;
+import ecommerce.api.home.living.senai.service.validation.NameValidated;
 import jakarta.persistence.*;
 import lombok.Getter;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -25,25 +28,36 @@ public class UsuarioCliente {
     @OneToMany(mappedBy = "idUsuario", fetch = FetchType.LAZY)
     public List<Pedido> pedidos;
 
-    protected UsuarioCliente(String nome, String email){
+    protected UsuarioCliente(String nome, String email, String senha){
         this.nome =
                 Objects.requireNonNull
                         (nome, "O nome não pode ser nulo");
         this.email =
                 Objects.requireNonNull
                         (email, "O email é obrigatorio");
+        this.senha = Objects.requireNonNull(senha, "Senha é invalida");
     }
 
     public UsuarioCliente(){
 
     }
-
-    public static Result<UsuarioCliente, List<String>> created(String nome, String email, String senha){
+    public static Result<UsuarioCliente, List<String>> created(String nome, String email, String senhaHash, PasswordEncoder encoder){
+        final int EMAIL_CHARACTER_MIN = 10;
         List<String> erros = new ArrayList<>();
-
         if (nome == null || nome.trim().length() < 2){
             erros.add("O nome é muito curto");
         }
+        if (email == null || email.trim().length() < EMAIL_CHARACTER_MIN || !email.contains("@") || email.isBlank()){
+            erros.add("Email invalido");
+        }
+        if (senhaHash.trim().length() < 60 || senhaHash.isBlank()){
+            erros.add("Senha é invalida para criptografar");
+        }
+        if (!erros.isEmpty()){
+            return Result.fail(erros);
+        }
+
+        return Result.ok(new UsuarioCliente(nome.trim(), email, encoder.encode(senhaHash)));
     }
 
     public void desativarUser() {
