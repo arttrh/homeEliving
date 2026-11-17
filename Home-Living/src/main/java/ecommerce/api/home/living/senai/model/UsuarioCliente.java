@@ -1,9 +1,9 @@
 package ecommerce.api.home.living.senai.model;
 
+import ecommerce.api.home.living.senai.service.validation.Result;
 import jakarta.persistence.*;
 import lombok.Getter;
-
-import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -18,14 +18,14 @@ public class UsuarioCliente {
     private String nome;
     @Column(name = "email", nullable = false, length = 100, unique = true)
     private String email;
-    @Column(name = "senha", nullable = false, length = 8, unique = true)
+    @Column(name = "senha", nullable = false, length = 100)
     private String senha;
     private boolean ativo = true;
 
     @OneToMany(mappedBy = "idUsuario", fetch = FetchType.LAZY)
     public List<Pedido> pedidos;
 
-    public UsuarioCliente(String nome, String email){
+    protected UsuarioCliente(String nome, String email){
         this.nome =
                 Objects.requireNonNull
                         (nome, "O nome não pode ser nulo");
@@ -36,6 +36,14 @@ public class UsuarioCliente {
 
     public UsuarioCliente(){
 
+    }
+
+    public static Result<UsuarioCliente, List<String>> created(String nome, String email, String senha){
+        List<String> erros = new ArrayList<>();
+
+        if (nome == null || nome.trim().length() < 2){
+            erros.add("O nome é muito curto");
+        }
     }
 
     public void desativarUser() {
